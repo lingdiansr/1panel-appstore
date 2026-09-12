@@ -32,25 +32,29 @@ EasyTier 官方 Web 控制台（`easytier-web-embed`）自托管版：内嵌前�
 
 ## 首次登录（重要）
 
-控制台数据库初始化时会写入种子账号，**默认凭据为**：
+控制台数据库初始化时由迁移写入两个种子账号，**默认凭据**：
 
-```
-用户名：admin
-密码：21232f297a57a5a743894a0e4a801fc3      # 即 md5("admin")
-```
+| 登录入口 | 用户名 | 密码填什么 |
+| --- | --- | --- |
+| **浏览器登录页** | `admin` | `admin` —— 直接填单词，前端会自己 md5 后再提交 |
+| 直接调 API（curl 等） | `admin` | `21232f297a57a5a743894a0e4a801fc3`（= md5("admin")，即界面提交后的值） |
 
-该账号属于 `admins` 组，拥有全部权限。**安装完成后请立即登录并修改密码**（控制台内「用户/设置」处修改），或直接调用接口：
+同理普通账号 `user`：界面填 `user` / `user`；裸调 API 用 `ee11cbb19052e40b07aac0ca060c23ee`。
+
+> **为什么两处不一样**：前端 `api.ts` 在提交前会执行 `Md5.hashStr(password)`，服务端存的是 `argon2(md5(明文))`。所以**界面里填明文**，**裸调 API 必须自己先 md5**。在界面里贴那串哈希会被再 md5 一次 → 401 `Invalid username or password`（前端在 401 时固定显示这句话）。
+
+`admin` 属于 `admins` 组，拥有全部权限。**安装完成后请立即登录并修改密码**（控制台「修改密码」页面填明文即可），或走接口：
 
 ```bash
-# 1) 登录拿会话
+# 1) 登录拿会话（裸调 API：先自己 md5；也可用 python3 -c "import hashlib;print(hashlib.md5(b'admin').hexdigest())"）
 curl -c /tmp/et-cookie -X POST "http://<服务器地址>:11211/api/v1/auth/login" \
      -H "Content-Type: application/json" \
      -d '{"username":"admin","password":"21232f297a57a5a743894a0e4a801fc3"}'
 
-# 2) 修改密码（改完即退出登录）
+# 2) 修改密码（同样传 md5(新密码)；改完会话即失效）
 curl -b /tmp/et-cookie -X PUT "http://<服务器地址>:11211/api/v1/auth/password" \
      -H "Content-Type: application/json" \
-     -d '{"new_password":"<你的强密码>"}'
+     -d "{\"new_password\":\"$(printf %s '<新密码>' | md5sum | cut -d' ' -f1)\"}"
 
 # 3) 删除本地 cookie 文件
 rm -f /tmp/et-cookie
@@ -58,20 +62,12 @@ rm -f /tmp/et-cookie
 
 > 注册功能默认开启（`--disable-registration` 可关闭）。若不希望公网用户自行注册，请在控制台修改密码后，在应用安装目录的 `docker-compose.yml` 里为该服务追加 `--disable-registration`，再在面板中重建容器。
 
-### 默认密码是什么 / 看不到明文怎么办
+### 账号是怎么来的 / 忘了密码怎么办
 
-`data/et.db` 的 `users.password` 只存 **argon2 哈希**，没有明文、无法反查。默认值由数据库迁移的种子写死，因此是恒定可推导的：
-
-| 账号 | 默认密码（就是该账号名的 md5 十六进制串） |
-| --- | --- |
-| `admin` | `21232f297a57a5a743894a0e4a801fc3`（md5("admin")） |
-| `user` | `ee11cbb19052e40b07aac0ca060c23ee`（md5("user")） |
-
-> 注意填的是那串十六进制，不是单词 `admin`/`user` 本身。
-
-改密码：控制台内「修改密码」页面，或 `PUT /api/v1/auth/password`（body `{"new_password":"..."}`，需已登录）。
-
-**忘记/被改坏时的恢复**：把 admin 的哈希写回种子值即可恢复默认密码（无需 argon2 工具），改完重启应用容器：
+- **初始账号是自动生成的**：首次启动时 DB 迁移 `m20241029_000001_init` 直接插入 `user`、`admin` 两条记录（源码里注释为 `// user (md5summed)`、`// admin (md5summed)`），并建 `users`/`admins` 两个组，把 `admin` 放进 `admins`。**不需要先注册**；注册只是给用户自己开号的额外途径。
+- `users.password` **只存 argon2 哈希**（单向、不可反查），库里看不到明文；默认密码之所以已知，是因为迁移把哈希硬编码在了源码里，而它的明文就是该账号名的 md5 值（上表已实测）。
+- 改密码：控制台「修改密码」页（填明文），或 `PUT /api/v1/auth/password`（传 md5 值，需已登录会话）。
+- **忘记/被改坏时的恢复**：把 admin 的哈希写回种子值，即可恢复成"界面填 `admin`"这一默认密码（无需任何 argon2 工具），改完重启应用容器：
 
 ```bash
 cp <安装目录>/data/et.db{,.bak}

@@ -1,0 +1,64 @@
+additionalProperties:
+  formFields:
+    - default: 11211
+      edit: true
+      envKey: PANEL_APP_PORT_HTTP
+      labelEn: Console port (web + restful API)
+      labelZh: 控制台端口（Web 界面与 API 共用）
+      label:
+        en: Console port (web + restful API)
+        zh: 控制台端口（Web 界面与 API 共用）
+      required: true
+      rule: paramPort
+      type: number
+    - default: 22020
+      edit: true
+      envKey: PANEL_APP_PORT_CONFIG
+      labelEn: Node access port (config server, UDP)
+      labelZh: 设备接入端口（config server，UDP）
+      label:
+        en: Node access port (config server, UDP)
+        zh: 设备接入端口（config server，UDP）
+      required: true
+      rule: paramPort
+      type: number
+    - default: "http://127.0.0.1:11211"
+      edit: true
+      envKey: EASYTIER_API_HOST
+      labelEn: Console API URL used by the browser
+      labelZh: 控制台 API 地址（浏览器访问控制台所用地址）
+      label:
+        en: Console API URL used by the browser
+        zh: 控制台 API 地址（浏览器访问控制台所用地址）
+      required: true
+      type: text
+    - default: "v2.6.4"
+      edit: true
+      envKey: EASYTIER_VERSION
+      labelEn: Image tag
+      labelZh: 镜像版本标签
+      label:
+        en: Image tag
+        zh: 镜像版本标签
+      required: true
+      type: text
+    - default: "./data"
+      edit: true
+      envKey: DATA_PATH
+      labelEn: Data directory (stores et.db)
+      labelZh: 数据目录（存放 et.db）
+      label:
+        en: Data directory (stores et.db)
+        zh: 数据目录（存放 et.db）
+      required: true
+      type: text
+    - default: "Asia/Shanghai"
+      edit: true
+      envKey: TIME_ZONE
+      labelEn: Time zone
+      labelZh: 时区
+      label:
+        en: Time zone
+        zh: 时区
+      required: true
+      type: text

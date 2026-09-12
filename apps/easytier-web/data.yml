@@ -1,0 +1,25 @@
+name: EasyTier-Web
+tags:
+  - 实用工具
+title: EasyTier 官方 Web 控制台（自托管）
+description: EasyTier 官方 Web 控制台（easytier-web-embed）自托管版，内嵌前端，SQLite 存储，可视化纳管组网设备并下发配置。
+additionalProperties:
+  key: easytier-web
+  name: EasyTier-Web
+  tags:
+    - Tool
+  shortDescZh: EasyTier 官方 Web 控制台自托管版，可视化纳管组网设备
+  shortDescEn: Self-hosted official EasyTier web console for managing mesh nodes
+  description:
+    en: Self-hosted official EasyTier web console (easytier-web-embed) with embedded frontend and SQLite storage for managing mesh nodes and pushing configs.
+    zh: EasyTier 官方 Web 控制台（easytier-web-embed）自托管版，内嵌前端，SQLite 存储，可视化纳管组网设备并下发配置。
+  type: tool
+  crossVersionUpdate: true
+  limit: 1
+  recommend: 0
+  website: https://easytier.cn/
+  github: https://github.com/EasyTier/EasyTier
+  document: https://easytier.cn/guide/introduction.html
+  architectures:
+    - amd64
+    - arm64

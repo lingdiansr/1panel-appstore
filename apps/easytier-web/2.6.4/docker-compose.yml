@@ -1,0 +1,30 @@
+services:
+  easytier-web:
+    image: easytier/easytier:${EASYTIER_VERSION}
+    container_name: ${CONTAINER_NAME}
+    restart: always
+    entrypoint:
+      - /sbin/tini
+      - --
+      - easytier-web-embed
+    command:
+      - --db=/data/et.db
+      - --api-server-port=11211
+      - --config-server-port=22020
+      - --config-server-protocol=udp
+      - --api-host=${EASYTIER_API_HOST}
+    environment:
+      - TZ=${TIME_ZONE}
+    volumes:
+      - ${DATA_PATH}:/data
+    ports:
+      - ${PANEL_APP_PORT_HTTP}:11211
+      - ${PANEL_APP_PORT_CONFIG}:22020/udp
+    labels:
+      createdBy: "Apps"
+    networks:
+      - 1panel-network
+
+networks:
+  1panel-network:
+    external: true

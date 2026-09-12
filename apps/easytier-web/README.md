@@ -101,6 +101,20 @@ easytier-core --config-server udp://<服务器地址>:22020/<用户名> \
 
 > `EASYTIER_API_HOST` 填错时，控制台登录页仍可手动修改 API 地址（会记在浏览器本地存储里）。
 
+## 常见问题
+
+### 账号密码没错却登录不上 / 登录后又被弹回登录页
+
+原因几乎都是 **`EASYTIER_API_HOST` 与你在浏览器里打开的地址不一致**：控制台前端的 API 地址来自页面内嵌的 `api_meta.js`（由 `EASYTIER_API_HOST` 决定）。例如你用 `http://ssh.ldsr.xyz:11211` 打开页面，而 `EASYTIER_API_HOST=http://47.120.5.89:11211`，登录请求就变成**跨站请求**，而会话 Cookie 是 `SameSite=Lax`，不会随之后的接口调用发送 → 表现为"密码明明对，却一直登不上或反复跳登录页"。
+
+处理方式（任选其一）：
+
+1. 把 `EASYTIER_API_HOST` 改成你实际访问控制台用的地址（协议 + 主机 + 端口都要对），保存后应用会自动重建容器；
+2. 在登录页的 **API Host** 输入框里改成正确地址（会保存在浏览器本地，仅影响该浏览器）；
+3. 浏览器里存过旧的 API 地址时，清一次该站点数据，或按 1/2 处理后强刷页面。
+
+验证：浏览器打开 `http://<你的地址>:<端口>/api_meta.js`，输出的 `api_host` 应与地址栏前缀一致。
+
 ## 反向代理 / HTTPS（可选）
 
 控制台是纯 HTTP + WebSocket/普通 REST 的普通 Web 应用，可直接用 1Panel 的「网站 → 反向代理」把它挂到域名上（如 `https://et.example.com` → `http://127.0.0.1:11211`）。使用域名访问时，把 `EASYTIER_API_HOST` 设为该域名即可。

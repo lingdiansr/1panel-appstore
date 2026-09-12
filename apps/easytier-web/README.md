@@ -95,11 +95,14 @@ easytier-core --config-server udp://<服务器地址>:22020/<用户名> \
 | `PANEL_APP_PORT_HTTP` | `11211` | 控制台（Web + API）宿主机端口 |
 | `PANEL_APP_PORT_CONFIG` | `22020` | 设备接入（config server）宿主机 UDP 端口 |
 | `EASYTIER_API_HOST` | `http://127.0.0.1:11211` | **浏览器**访问控制台所用地址，前端据此调用 API；请改成你实际访问的地址，如 `http://1.2.3.4:11211` 或 `https://et.example.com` |
-| `EASYTIER_VERSION` | `v2.6.4` | 镜像标签 |
 | `DATA_PATH` | `./data` | 数据目录（存放 `et.db`） |
 | `TIME_ZONE` | `Asia/Shanghai` | 容器时区 |
 
-> `EASYTIER_API_HOST` 填错时，控制台登录页仍可手动修改 API 地址（会记在浏览器本地存储里）。
+> 镜像标签不放在安装表单里：**版本由版本目录决定**（本包为 `2.6.4/`，compose 中即 `easytier/easytier:v2.6.4`）。升级 = 新增一个版本目录，再在面板里切换版本，避免「版本选择」与「镜像标签」两个入口各填一次。
+
+## 日志
+
+面板「应用 → EasyTier-Web → 日志」显示的是容器 stdout。本包固定带了 `--console-log-level=info`，启动即可看到建库/迁移/config server 监听等输出，之后登录、节点接入等事件也会打印；若删掉该参数，`easytier-web-embed` 默认只输出 warn/error，日志页会看起来像"加载不出来"（空）。
 
 ## 常见问题
 

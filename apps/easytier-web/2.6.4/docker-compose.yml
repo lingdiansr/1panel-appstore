@@ -1,6 +1,6 @@
 services:
   easytier-web:
-    image: easytier/easytier:${EASYTIER_VERSION}
+    image: easytier/easytier:v2.6.4
     container_name: ${CONTAINER_NAME}
     restart: always
     entrypoint:
@@ -13,6 +13,7 @@ services:
       - --config-server-port=22020
       - --config-server-protocol=udp
       - --api-host=${EASYTIER_API_HOST}
+      - --console-log-level=info
     environment:
       - TZ=${TIME_ZONE}
     volumes:

@@ -32,16 +32,6 @@ additionalProperties:
         zh: 控制台 API 地址（浏览器访问控制台所用地址）
       required: true
       type: text
-    - default: "v2.6.4"
-      edit: true
-      envKey: EASYTIER_VERSION
-      labelEn: Image tag
-      labelZh: 镜像版本标签
-      label:
-        en: Image tag
-        zh: 镜像版本标签
-      required: true
-      type: text
     - default: "./data"
       edit: true
       envKey: DATA_PATH

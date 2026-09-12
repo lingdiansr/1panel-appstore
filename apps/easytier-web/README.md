@@ -6,6 +6,16 @@ EasyTier 官方 Web 控制台（`easytier-web-embed`）自托管版：内嵌前�
 - 官方文档：<https://easytier.cn/>
 - 镜像：`easytier/easytier`（与本应用同版本的官方镜像）
 
+## 首次登录
+
+| 用户名 | 密码 |
+| --- | --- |
+| `admin` | `admin` |
+
+`admin` 属于 `admins` 组、拥有全部权限，**登录后请立即在「修改密码」页面改成强密码**。
+
+> 密码在浏览器登录页填**明文**即可（前端提交前会做一次 md5）。只有绕过界面直接调 API 时，才需要自己先 md5：`admin` 对应 `21232f297a57a5a743894a0e4a801fc3`。
+
 ## 组件与端口
 
 容器内固定端口，宿主机端口由安装表单决定：
@@ -30,64 +40,6 @@ EasyTier 官方 Web 控制台（`easytier-web-embed`）自托管版：内嵌前�
 > 若要浏览器直连控制台，安装时在「高级设置」勾选**允许外部访问（端口）**并选择 `0.0.0.0`（或具体公网 IP），映射即变为 `0.0.0.0:11211->11211/tcp`；
 > 或保持默认绑定，用 1Panel 的「网站 → 反向代理」把域名指到 `http://127.0.0.1:11211`（推荐，可顺带加 HTTPS）。
 
-## 首次登录（重要）
-
-控制台数据库初始化时由迁移写入两个种子账号，**默认凭据**：
-
-| 登录入口 | 用户名 | 密码填什么 |
-| --- | --- | --- |
-| **浏览器登录页** | `admin` | `admin` —— 直接填单词，前端会自己 md5 后再提交 |
-| 直接调 API（curl 等） | `admin` | `21232f297a57a5a743894a0e4a801fc3`（= md5("admin")，即界面提交后的值） |
-
-同理普通账号 `user`：界面填 `user` / `user`；裸调 API 用 `ee11cbb19052e40b07aac0ca060c23ee`。
-
-> **为什么两处不一样**：前端 `api.ts` 在提交前会执行 `Md5.hashStr(password)`，服务端存的是 `argon2(md5(明文))`。所以**界面里填明文**，**裸调 API 必须自己先 md5**。在界面里贴那串哈希会被再 md5 一次 → 401 `Invalid username or password`（前端在 401 时固定显示这句话）。
-
-`admin` 属于 `admins` 组，拥有全部权限。**安装完成后请立即登录并修改密码**（控制台「修改密码」页面填明文即可），或走接口：
-
-```bash
-# 1) 登录拿会话（裸调 API：先自己 md5；也可用 python3 -c "import hashlib;print(hashlib.md5(b'admin').hexdigest())"）
-curl -c /tmp/et-cookie -X POST "http://<服务器地址>:11211/api/v1/auth/login" \
-     -H "Content-Type: application/json" \
-     -d '{"username":"admin","password":"21232f297a57a5a743894a0e4a801fc3"}'
-
-# 2) 修改密码（同样传 md5(新密码)；改完会话即失效）
-curl -b /tmp/et-cookie -X PUT "http://<服务器地址>:11211/api/v1/auth/password" \
-     -H "Content-Type: application/json" \
-     -d "{\"new_password\":\"$(printf %s '<新密码>' | md5sum | cut -d' ' -f1)\"}"
-
-# 3) 删除本地 cookie 文件
-rm -f /tmp/et-cookie
-```
-
-> 注册功能默认开启（`--disable-registration` 可关闭）。若不希望公网用户自行注册，请在控制台修改密码后，在应用安装目录的 `docker-compose.yml` 里为该服务追加 `--disable-registration`，再在面板中重建容器。
-
-### 账号是怎么来的 / 忘了密码怎么办
-
-- **初始账号是自动生成的**：首次启动时 DB 迁移 `m20241029_000001_init` 直接插入 `user`、`admin` 两条记录（源码里注释为 `// user (md5summed)`、`// admin (md5summed)`），并建 `users`/`admins` 两个组，把 `admin` 放进 `admins`。**不需要先注册**；注册只是给用户自己开号的额外途径。
-- `users.password` **只存 argon2 哈希**（单向、不可反查），库里看不到明文；默认密码之所以已知，是因为迁移把哈希硬编码在了源码里，而它的明文就是该账号名的 md5 值（上表已实测）。
-- 改密码：控制台「修改密码」页（填明文），或 `PUT /api/v1/auth/password`（传 md5 值，需已登录会话）。
-- **忘记/被改坏时的恢复**：把 admin 的哈希写回种子值，即可恢复成"界面填 `admin`"这一默认密码（无需任何 argon2 工具），改完重启应用容器：
-
-```bash
-cp <安装目录>/data/et.db{,.bak}
-python3 - <<'PY'
-import sqlite3
-db = "<安装目录>/data/et.db"
-c = sqlite3.connect(db)
-c.execute("update users set password=? where username='admin'",
-          ('$argon2i$v=19$m=16,t=2,p=1$bW5idXl0cmY$61n+JxL4r3dwLPAEDlDdtg',))
-c.commit(); c.close()
-PY
-```
-
-### 注册一直报 captcha verify error
-
-该报错只有一个来源：`{"message":"captcha verify error, input: ..."}`，两种成因：
-
-1. 验证码填错（大小写不敏感，实测大写提交也通过；验证码也不是一次性的，同一会话可重复使用）；
-2. **验证码的会话 Cookie 没带上**——浏览器把验证码请求当第三方请求丢弃 Cookie 时必然如此，根因同上面的「登录不上」：页面地址与 `EASYTIER_API_HOST` 不是同一个源。改成一致后重新获取验证码再注册即可。
-
 ## 纳管设备（让节点接入控制台）
 
 1. 在控制台注册/创建一个账号（或使用 `admin`），记下用户名；
@@ -111,6 +63,7 @@ easytier-core --config-server udp://<服务器地址>:22020/<用户名> \
 ```
 
 > 免 TUN 的纯转发节点可加 `--no-tun`；节点间通信端口（默认 11010/11011/11012/11013）由 `easytier-core` 自身监听，与本应用无关。
+> 注册功能默认开启，若不希望公网用户自行注册，在 compose 的 command 里追加 `--disable-registration` 后重建。
 
 ## 数据与备份
 
@@ -128,29 +81,29 @@ easytier-core --config-server udp://<服务器地址>:22020/<用户名> \
 | `DATA_PATH` | `./data` | 数据目录（存放 `et.db`） |
 | `TIME_ZONE` | `Asia/Shanghai` | 容器时区 |
 
-> 镜像标签不放在安装表单里：**版本由版本目录决定**（本包为 `2.6.4/`，compose 中即 `easytier/easytier:v2.6.4`）。升级 = 新增一个版本目录，再在面板里切换版本，避免「版本选择」与「镜像标签」两个入口各填一次。
+> 镜像标签不放在安装表单里：**版本由版本目录决定**（本包为 `2.6.4/`，compose 中即 `easytier/easytier:v2.6.4`）。升级 = 新增一个版本目录，再在面板里切换，避免「版本选择」与「镜像标签」两个入口各填一次。
 
 ## 日志
 
-面板「应用 → EasyTier-Web → 日志」显示的是容器 stdout。本包固定带了 `--console-log-level=info`，启动即可看到建库/迁移/config server 监听等输出，之后登录、节点接入等事件也会打印；若删掉该参数，`easytier-web-embed` 默认只输出 warn/error，日志页会看起来像"加载不出来"（空）。
+面板「应用 → EasyTier-Web → 日志」显示的是容器 stdout。本包固定带 `--console-log-level=info`，启动即可看到建库/迁移/config server 监听等输出；若删掉该参数，`easytier-web-embed` 默认只输出 warn/error，日志页会看起来像“加载不出来”（空）。
 
 ## 常见问题
 
 ### 账号密码没错却登录不上 / 登录后又被弹回登录页
 
-原因几乎都是 **`EASYTIER_API_HOST` 与你在浏览器里打开的地址不一致**：控制台前端的 API 地址来自页面内嵌的 `api_meta.js`（由 `EASYTIER_API_HOST` 决定）。例如你用 `http://ssh.ldsr.xyz:11211` 打开页面，而 `EASYTIER_API_HOST=http://47.120.5.89:11211`，登录请求就变成**跨站请求**，而会话 Cookie 是 `SameSite=Lax`，不会随之后的接口调用发送 → 表现为"密码明明对，却一直登不上或反复跳登录页"。
+原因是 **`EASYTIER_API_HOST` 与你在浏览器里打开的地址不一致**：前端的 API 地址来自页面内嵌的 `api_meta.js`（由 `EASYTIER_API_HOST` 决定）。例如用 `http://ssh.ldsr.xyz:11211` 打开页面而该值为 `http://47.120.5.89:11211`，登录请求就变成**跨站请求**，会话 Cookie 是 `SameSite=Lax`，不会随之后的接口调用发送 → 表现为“密码明明对却登不上/反复跳登录页”。
 
-处理方式（任选其一）：
+处理：把 `EASYTIER_API_HOST` 改成你实际访问控制台用的地址（协议+主机+端口都要对，保存后会自动重建容器）；或在登录页的 **API Host** 输入框里改成正确地址（存浏览器本地）；浏览器里存过旧值时清一次站点数据再强刷。
 
-1. 把 `EASYTIER_API_HOST` 改成你实际访问控制台用的地址（协议 + 主机 + 端口都要对），保存后应用会自动重建容器；
-2. 在登录页的 **API Host** 输入框里改成正确地址（会保存在浏览器本地，仅影响该浏览器）；
-3. 浏览器里存过旧的 API 地址时，清一次该站点数据，或按 1/2 处理后强刷页面。
+自检：浏览器打开 `http://<你的地址>:<端口>/api_meta.js`，输出的 `api_host` 应与地址栏前缀一致。
 
-验证：浏览器打开 `http://<你的地址>:<端口>/api_meta.js`，输出的 `api_host` 应与地址栏前缀一致。
+### 注册时报 captcha verify error
+
+`{"message":"captcha verify error, input: ..."}` 只有两种成因：验证码填错；或验证码的会话 Cookie 没带上（同样源于上面那个「页面地址与 API Host 不同源」，浏览器把验证码请求当第三方请求丢弃 Cookie）。改成同源后重新获取验证码再注册即可。
 
 ## 反向代理 / HTTPS（可选）
 
-控制台是纯 HTTP + WebSocket/普通 REST 的普通 Web 应用，可直接用 1Panel 的「网站 → 反向代理」把它挂到域名上（如 `https://et.example.com` → `http://127.0.0.1:11211`）。使用域名访问时，把 `EASYTIER_API_HOST` 设为该域名即可。
+控制台是普通的 HTTP + REST 应用，可直接用 1Panel 的「网站 → 反向代理」把它挂到域名上（如 `https://et.example.com` → `http://127.0.0.1:11211`）。使用域名访问时，把 `EASYTIER_API_HOST` 设为该域名即可。
 
 ## 免责声明
 

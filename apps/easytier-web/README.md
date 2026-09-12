@@ -58,6 +58,40 @@ rm -f /tmp/et-cookie
 
 > 注册功能默认开启（`--disable-registration` 可关闭）。若不希望公网用户自行注册，请在控制台修改密码后，在应用安装目录的 `docker-compose.yml` 里为该服务追加 `--disable-registration`，再在面板中重建容器。
 
+### 默认密码是什么 / 看不到明文怎么办
+
+`data/et.db` 的 `users.password` 只存 **argon2 哈希**，没有明文、无法反查。默认值由数据库迁移的种子写死，因此是恒定可推导的：
+
+| 账号 | 默认密码（就是该账号名的 md5 十六进制串） |
+| --- | --- |
+| `admin` | `21232f297a57a5a743894a0e4a801fc3`（md5("admin")） |
+| `user` | `ee11cbb19052e40b07aac0ca060c23ee`（md5("user")） |
+
+> 注意填的是那串十六进制，不是单词 `admin`/`user` 本身。
+
+改密码：控制台内「修改密码」页面，或 `PUT /api/v1/auth/password`（body `{"new_password":"..."}`，需已登录）。
+
+**忘记/被改坏时的恢复**：把 admin 的哈希写回种子值即可恢复默认密码（无需 argon2 工具），改完重启应用容器：
+
+```bash
+cp <安装目录>/data/et.db{,.bak}
+python3 - <<'PY'
+import sqlite3
+db = "<安装目录>/data/et.db"
+c = sqlite3.connect(db)
+c.execute("update users set password=? where username='admin'",
+          ('$argon2i$v=19$m=16,t=2,p=1$bW5idXl0cmY$61n+JxL4r3dwLPAEDlDdtg',))
+c.commit(); c.close()
+PY
+```
+
+### 注册一直报 captcha verify error
+
+该报错只有一个来源：`{"message":"captcha verify error, input: ..."}`，两种成因：
+
+1. 验证码填错（大小写不敏感，实测大写提交也通过；验证码也不是一次性的，同一会话可重复使用）；
+2. **验证码的会话 Cookie 没带上**——浏览器把验证码请求当第三方请求丢弃 Cookie 时必然如此，根因同上面的「登录不上」：页面地址与 `EASYTIER_API_HOST` 不是同一个源。改成一致后重新获取验证码再注册即可。
+
 ## 纳管设备（让节点接入控制台）
 
 1. 在控制台注册/创建一个账号（或使用 `admin`），记下用户名；

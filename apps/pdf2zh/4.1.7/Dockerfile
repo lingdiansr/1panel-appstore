@@ -21,4 +21,4 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 EXPOSE 8890
 
-CMD ["python", "/app/server/server.py", "--enable_venv=False", "--check_update=False", "--port=8890", "--host=0.0.0.0", "--env_tool=system", "--enable_mirror=False"]
+CMD ["python", "/app/server/server.py", "--enable_venv=False", "--check_update=False", "--port=8890", "--host=0.0.0.0", "--env_tool=auto", "--enable_mirror=False"]

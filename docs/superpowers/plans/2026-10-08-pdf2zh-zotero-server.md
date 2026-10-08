@@ -51,7 +51,7 @@ RUN curl -fL --retry 3 --retry-delay 2 "$SERVER_URL" -o /tmp/server.zip \
     && rm -f /tmp/server.zip
 RUN mkdir -p /app/server/config /app/server/translated
 EXPOSE 8890
-CMD ["python", "/app/server/server.py", "--enable_venv=False", "--check_update=False", "--port=8890", "--host=0.0.0.0", "--env_tool=system"]
+CMD ["python", "/app/server/server.py", "--enable_venv=False", "--check_update=False", "--port=8890", "--host=0.0.0.0", "--env_tool=auto"]
 ```
 
 Install `curl` and `unzip` only if the pinned base image does not already provide them; do not add Docker CLI or Docker socket access.
@@ -112,7 +112,7 @@ curl --fail http://127.0.0.1:18890/api/tasks
 curl --fail http://127.0.0.1:18890/translatedInfo
 ```
 
-Expected: HTTP 200 JSON responses. The build was attempted, but the local Podman registry mirror failed while pulling the pinned base image with `parsing image configuration ... EOF`; static checks and the Server archive check passed.
+Expected: the downloaded `v4.1.7/server.zip` passed a temporary local protocol smoke test: `/health`, `/api/config`, `/api/tasks`, and `/translatedInfo` returned HTTP 200. The container build was also attempted, but the local Podman registry mirror failed while pulling the pinned base image with `parsing image configuration ... EOF`.
 
 - [x] **Step 4: Commit implementation**
 

@@ -66,7 +66,7 @@ python /app/server/server.py \
   --enable_venv=False \
   --check_update=False \
   --port=8890 \
-  --env_tool=system
+  --env_tool=auto
 ```
 
 - 重启策略：`always`

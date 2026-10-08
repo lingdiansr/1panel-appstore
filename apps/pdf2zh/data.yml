@@ -1,0 +1,25 @@
+name: PDFMathTranslate
+tags:
+  - 实用工具
+title: PDFMathTranslate 文档翻译服务
+description: 基于 AI 保留原始排版的 PDF 文档全文翻译服务，提供浏览器 GUI。
+additionalProperties:
+  key: pdf2zh
+  name: PDFMathTranslate
+  tags:
+    - Tool
+  shortDescZh: 保留排版的 PDF 文档翻译服务
+  shortDescEn: Layout-preserving PDF document translation service
+  description:
+    en: Browser-based PDF document translation service that preserves formulas, charts, and layouts.
+    zh: 基于浏览器的 PDF 文档翻译服务，尽量保留公式、图表和原始排版。
+  type: tool
+  crossVersionUpdate: true
+  limit: 1
+  recommend: 0
+  website: https://pdf2zh.com/
+  github: https://github.com/PDFMathTranslate/PDFMathTranslate
+  document: https://github.com/PDFMathTranslate/PDFMathTranslate/blob/main/docs/README_zh-CN.md
+  architectures:
+    - amd64
+    - arm64

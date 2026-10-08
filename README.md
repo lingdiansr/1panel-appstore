@@ -7,6 +7,7 @@
 | 应用 (key) | 名称 | 说明 | 版本 |
 | --- | --- | --- | --- |
 | `easytier-web` | [EasyTier-Web](apps/easytier-web) | EasyTier 官方 Web 控制台（`easytier-web-embed`）自托管版，内嵌前端 + SQLite，可视化纳管组网节点并下发配置 | 2.6.4 |
+| `pdf2zh` | [PDFMathTranslate](apps/pdf2zh) | 基于 AI 保留排版的 PDF 文档翻译服务，提供浏览器 GUI | 1.9.11 |
 
 > 与官方商店中不带控制台的 `easytier`（`limit: 1`）**互不冲突**，两者的应用 key 不同，可同时安装。
 

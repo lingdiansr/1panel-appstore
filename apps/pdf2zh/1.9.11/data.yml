@@ -1,0 +1,23 @@
+additionalProperties:
+  formFields:
+    - default: 7860
+      edit: true
+      envKey: PANEL_APP_PORT_HTTP
+      labelEn: Web port
+      labelZh: Web 端口
+      label:
+        en: Web port
+        zh: Web 端口
+      required: true
+      rule: paramPort
+      type: number
+    - default: "./data"
+      edit: true
+      envKey: DATA_PATH
+      labelEn: Data directory
+      labelZh: 数据目录
+      label:
+        en: Data directory
+        zh: 数据目录
+      required: true
+      type: text

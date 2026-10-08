@@ -1,25 +1,25 @@
 name: PDFMathTranslate
 tags:
   - 实用工具
-title: PDFMathTranslate 文档翻译服务
-description: 基于 AI 保留原始排版的 PDF 文档全文翻译服务，提供浏览器 GUI。
+title: PDFMathTranslate Zotero Python Server
+description: 兼容 Zotero PDF2zh 插件的 PDF 文档翻译 Python Server，提供翻译任务、进度和文件下载接口。
 additionalProperties:
   key: pdf2zh
   name: PDFMathTranslate
   tags:
     - Tool
-  shortDescZh: 保留排版的 PDF 文档翻译服务
-  shortDescEn: Layout-preserving PDF document translation service
+  shortDescZh: 兼容 Zotero 插件的 PDF 翻译 Python Server
+  shortDescEn: Zotero-compatible PDF translation Python server
   description:
-    en: Browser-based PDF document translation service that preserves formulas, charts, and layouts.
-    zh: 基于浏览器的 PDF 文档翻译服务，尽量保留公式、图表和原始排版。
+    en: Zotero-compatible PDF translation server with task progress and translated file download APIs.
+    zh: 兼容 Zotero PDF2zh 插件的 PDF 翻译服务，提供任务进度和翻译文件下载接口。
   type: tool
   crossVersionUpdate: true
   limit: 1
   recommend: 0
-  website: https://pdf2zh.com/
-  github: https://github.com/PDFMathTranslate/PDFMathTranslate
-  document: https://github.com/PDFMathTranslate/PDFMathTranslate/blob/main/docs/README_zh-CN.md
+  website: https://github.com/guaguastandup/zotero-pdf2zh
+  github: https://github.com/guaguastandup/zotero-pdf2zh
+  document: https://github.com/guaguastandup/zotero-pdf2zh/blob/main/docs/zh/guide/docker.md
   architectures:
     - amd64
     - arm64

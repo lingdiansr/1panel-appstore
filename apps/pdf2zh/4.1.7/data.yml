@@ -1,13 +1,13 @@
 additionalProperties:
   formFields:
-    - default: 7860
+    - default: 8890
       edit: true
       envKey: PANEL_APP_PORT_HTTP
-      labelEn: Web port
-      labelZh: Web 端口
+      labelEn: Zotero Python Server port
+      labelZh: Zotero Python Server 端口
       label:
-        en: Web port
-        zh: Web 端口
+        en: Zotero Python Server port
+        zh: Zotero Python Server 端口
       required: true
       rule: paramPort
       type: number
